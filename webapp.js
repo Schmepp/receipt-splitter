@@ -13,9 +13,6 @@ const state = {
 };
 
 const dom = {};
-const API_BASE_URL = window.location.origin === 'null' || window.location.protocol === 'file:'
-  ? 'http://127.0.0.1:5000'
-  : window.location.origin;
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -92,7 +89,7 @@ async function uploadReceipt(file) {
     const formData = new FormData();
     formData.append('receipt', file);
 
-    const response = await fetch(`${API_BASE_URL}/parse-receipt`, {
+    const response = await fetch('parse-receipt', {
       method: 'POST',
       body: formData,
     });

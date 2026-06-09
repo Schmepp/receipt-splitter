@@ -2,8 +2,6 @@
 Flask app that serves the web UI and receipt parsing endpoint.
 """
 
-from __future__ import annotations
-
 import base64
 import json
 from pathlib import Path
@@ -35,7 +33,7 @@ def webapp_js():
     return send_from_directory(ROOT_DIR, "webapp.js")
 
 
-@app.route("/parse-receipt", methods=["POST", "OPTIONS"])
+@app.route("/Bill-Scanner/parse-receipt", methods=["POST", "OPTIONS"])
 def parse_receipt():
     if request.method == "OPTIONS":
         return jsonify({"ok": True})

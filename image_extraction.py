@@ -1,20 +1,31 @@
-import base64, json
-from openai import OpenAI
+import base64
+import json
 import os
-from dotenv import load_dotenv, dotenv_values 
+
+from dotenv import load_dotenv
+
+try:
+    from openai import OpenAI
+except ModuleNotFoundError:
+    OpenAI = None
 
 # loading variables from .env file
 load_dotenv() 
 
-# getting the API key from environment variables
-api_key = os.getenv("API_KEY")
+def get_client():
+    if OpenAI is None:
+        raise RuntimeError(
+            "The openai package is not installed. Run: pip3 install -r requirements.txt"
+        )
 
+    api_key = os.getenv("API_KEY")
+    if not api_key:
+        raise RuntimeError("API_KEY is not set in the environment or .env file.")
 
-
-client = OpenAI(
-    api_key=api_key,
-    base_url="https://ws-ki005qo23xnwg4yq.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1"
-)
+    return OpenAI(
+        api_key=api_key,
+        base_url="https://ws-ki005qo23xnwg4yq.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1",
+    )
 
 def extract_image_data(image_path):
     # detect media type based on file extension
@@ -30,6 +41,7 @@ def extract_image_data(image_path):
     return image_data, media_type
 
 def extract_receipt_data(image_data, media_type):
+    client = get_client()
     
     response = client.chat.completions.create(
         model="qwen-omni-turbo",

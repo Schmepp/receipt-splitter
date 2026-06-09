@@ -40,7 +40,8 @@ def extract_receipt_data(image_data, media_type):
                 {
                 "type": "image_url",
                 "image_url": {
-                    "url": f"data:image/jpeg;base64,{image_data}"                    }
+                    "url": f"data:{media_type};base64,{image_data}"
+                    }
                 },
                 {
                     "type": "text",

@@ -1,0 +1,59 @@
+"""
+Flask app that serves the web UI and receipt parsing endpoint.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+from pathlib import Path
+
+from flask import Flask, jsonify, request, send_from_directory
+
+import image_extraction
+
+
+ROOT_DIR = Path(__file__).resolve().parent
+app = Flask(__name__)
+
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
+@app.route("/")
+def index():
+    return send_from_directory(ROOT_DIR, "index.html")
+
+
+@app.route("/webapp.js")
+def webapp_js():
+    return send_from_directory(ROOT_DIR, "webapp.js")
+
+
+@app.route("/parse-receipt", methods=["POST", "OPTIONS"])
+def parse_receipt():
+    if request.method == "OPTIONS":
+        return jsonify({"ok": True})
+
+    image_file = request.files.get("receipt")
+    if image_file is None:
+        return jsonify({"error": "No receipt image was uploaded."}), 400
+
+    try:
+        image_data = base64.standard_b64encode(image_file.read()).decode("utf-8")
+        media_type = image_file.content_type or "image/jpeg"
+        response = image_extraction.extract_receipt_data(image_data, media_type)
+        return jsonify(json.loads(response))
+    except json.JSONDecodeError:
+        return jsonify({"error": "The receipt parser returned invalid JSON."}), 502
+    except Exception as exc:
+        return jsonify({"error": str(exc) or "Unable to parse receipt."}), 500
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)

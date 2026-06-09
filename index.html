@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Split the Bill Calculator</title>
+  <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f7fb;
+        --panel: rgba(255, 255, 255, 0.92);
+        --panel-border: #dde6f0;
+        --text: #102033;
+        --muted: #5d6b7d;
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success-bg: #dcfce7;
+        --warning-bg: #fef3c7;
+        --error-bg: #fee2e2;
+      }
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        margin: 0;
+        padding: 0;
+        background:
+          radial-gradient(circle at top left, rgba(37, 99, 235, 0.10), transparent 26%),
+          radial-gradient(circle at top right, rgba(14, 165, 233, 0.10), transparent 22%),
+          var(--bg);
+        color: var(--text);
+      }
+      .page { max-width: 1100px; margin: 0 auto; padding: 24px; }
+      header.hero {
+        display: grid;
+        gap: 12px;
+        padding: 26px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.5);
+        border-radius: 24px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.92), rgba(255,255,255,0.75));
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(10px);
+      }
+      h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); letter-spacing: -0.03em; }
+      p.lead { margin: 0; color: var(--muted); max-width: 72ch; }
+      .subtle { color: var(--muted); font-size: 0.95rem; }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 20px;
+        box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+      .card h2 { margin-top: 0; margin-bottom: 14px; }
+      label { display: block; font-weight: 600; margin-bottom: 8px; }
+      input, select, button, textarea {
+        width: 100%;
+        font: inherit;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        padding: 12px 14px;
+        background: #fff;
+      }
+      input[type=file] { padding: 8px 10px; }
+      button {
+        cursor: pointer;
+        background: var(--primary);
+        color: white;
+        border: 1px solid transparent;
+        transition: background 0.2s ease, transform 0.08s ease, opacity 0.2s ease;
+        font-weight: 700;
+      }
+      button:hover { background: var(--primary-dark); }
+      button:active { transform: translateY(1px); }
+      button:disabled { opacity: 0.7; cursor: progress; }
+      .grid { display: grid; gap: 18px; }
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+      .inline-grid { display: grid; grid-template-columns: auto auto; gap: 10px; align-items: end; }
+      .stack { display: grid; gap: 10px; }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 14px;
+      }
+      .stat {
+        padding: 14px;
+        border-radius: 16px;
+        background: #f8fbff;
+        border: 1px solid #e2e8f0;
+      }
+      .stat strong { display: block; font-size: 1.2rem; margin-top: 4px; }
+      .summary-card {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+      }
+      .summary-card.compact { padding: 12px 14px; }
+      .person-grid { display: grid; gap: 10px; }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        background: #eff6ff;
+        color: #1d4ed8;
+      }
+      .meta-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #eef2ff;
+        color: #334155;
+        font-size: 0.85rem;
+      }
+      .notice {
+        padding: 14px 16px;
+        background: var(--warning-bg);
+        border-left: 4px solid #f59e0b;
+        border-radius: 12px;
+        margin-bottom: 16px;
+      }
+      .error { background: var(--error-bg); border-left-color: #ef4444; }
+      .success { background: var(--success-bg); border-left-color: #22c55e; }
+      .results { display: grid; gap: 12px; }
+      .results-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 14px; }
+      .table-wrap { overflow-x: auto; }
+      table { width: 100%; border-collapse: collapse; margin-top: 12px; min-width: 640px; }
+      th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+      th { background: #f1f5f9; font-weight: 700; }
+      .small { font-size: 0.95rem; color: var(--muted); }
+      .muted { color: var(--muted); }
+      .section-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
+      .button-row button { width: auto; min-width: 140px; }
+      .danger-button {
+        background: #ef4444;
+        color: #fff;
+        border-color: #ef4444;
+        min-width: 92px;
+        padding: 10px 12px;
+      }
+      .danger-button:hover { background: #dc2626; }
+      .receipt-card {
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px solid #e2e8f0;
+        background: linear-gradient(180deg, #ffffff, #f8fafc);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+      }
+      .receipt-paper {
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px dashed #cbd5e1;
+        background: #fff;
+      }
+      .receipt-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+        border-bottom: 1px dotted #e2e8f0;
+      }
+      .receipt-line:last-child { border-bottom: 0; }
+      .receipt-header {
+        display: grid;
+        gap: 4px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+      .receipt-header strong { font-size: 1.05rem; }
+      .receipt-total {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 2px solid #cbd5e1;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 800;
+      }
+      .preview-shell {
+        display: grid;
+        gap: 10px;
+        padding: 14px;
+        border-radius: 16px;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+      }
+      .preview-shell img { display: block; width: 100%; max-width: 420px; border-radius: 14px; border: 1px solid #dbeafe; }
+      .empty-state {
+        padding: 16px;
+        border-radius: 14px;
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+      }
+      @media (max-width: 900px) {
+        .results-grid { grid-template-columns: 1fr; }
+        .stats { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 700px) {
+        .grid-2 { grid-template-columns: 1fr; }
+        .inline-grid { grid-template-columns: 1fr; }
+      }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Split the Bill Calculator</h1>
+      <p class="lead">Upload a receipt image, assign items to people, add tip or tax, and calculate what each person owes.</p>
+      <div class="meta-row">
+        <span class="pill">Receipt parsing</span>
+        <span class="pill">Manual item editing</span>
+        <span class="pill">Shared tip and tax</span>
+      </div>
+    </header>
+
+    <section class="card" id="uploadCard">
+      <div class="section-toolbar">
+        <div>
+          <h2>Upload receipt</h2>
+          <div class="subtle">Choose an image, then parse it with the Flask backend.</div>
+        </div>
+      </div>
+      <form id="receiptForm" class="stack">
+        <label for="receiptInput">Upload receipt image</label>
+        <input id="receiptInput" type="file" accept="image/*" required />
+        <div class="inline-grid" style="margin-top: 6px;">
+          <button id="parseButton" type="submit">Parse receipt</button>
+          <button id="resetButton" type="button">Reset</button>
+        </div>
+      </form>
+      <div id="statusMessage" class="notice" style="display:none"></div>
+      <div id="previewArea" class="preview-shell" style="margin-top:18px; display:none;">
+        <strong>Receipt preview</strong>
+        <img id="receiptPreview" src="" alt="Receipt preview" />
+      </div>
+    </section>
+
+    <section class="card" id="receiptDataCard" style="display:none;">
+      <div class="grid grid-2">
+        <div>
+          <h2>Receipt details</h2>
+          <div class="summary-card">
+            <div><strong>Store</strong>: <span id="storeName">—</span></div>
+            <div><strong>Date</strong>: <span id="receiptDate">—</span></div>
+            <div><strong>Subtotal</strong>: <span id="receiptSubtotal">—</span></div>
+            <div><strong>Tax</strong>: <span id="receiptTax">—</span></div>
+            <div><strong>Total</strong>: <span id="receiptTotal">—</span></div>
+          </div>
+        </div>
+        <div>
+          <h2>People</h2>
+          <div id="peopleList" class="person-grid"></div>
+          <form id="addPersonForm" style="margin-top: 14px;">
+            <label for="newPersonName">Add your name</label>
+            <input id="newPersonName" type="text" placeholder="Your name" />
+            <button type="submit" style="margin-top: 8px; width:auto;">Add</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" id="itemsCard" style="display:none;">
+      <div class="section-toolbar">
+        <div>
+          <h2>Items & assignments</h2>
+          <div class="subtle">Check who shares each item, or add missing items manually.</div>
+        </div>
+      </div>
+      <form id="addItemForm" class="grid grid-2" style="margin-top: 6px;">
+        <label>
+          Item name
+          <input id="newItemName" type="text" placeholder="Item name" />
+        </label>
+        <label>
+          Price
+          <input id="newItemPrice" type="number" min="0" step="0.01" placeholder="0.00" />
+        </label>
+        <div style="grid-column: 1 / -1;">
+          <button type="submit" style="width:auto;">Add item</button>
+        </div>
+      </form>
+      <div id="itemsTableContainer"></div>
+    </section>
+
+    <section class="card" id="optionsCard" style="display:none;">
+      <h2>Tip</h2>
+      <div class="grid grid-2">
+        <label>
+          Tip percent
+          <input id="tipPercentInput" type="number" min="0" step="1" value="10" />
+        </label>
+      </div>
+      <label style="margin-top:12px;">
+        Split tip by
+        <select id="splitMethodSelect">
+          <option value="proportional">Proportional to item cost</option>
+          <option value="even">Evenly among people</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="card" id="resultsCard" style="display:none;">
+      <div class="section-toolbar">
+        <div>
+          <h2>Results</h2>
+          <div class="subtle">A quick summary plus each person’s share.</div>
+        </div>
+      </div>
+      <div class="results" id="resultsContainer"></div>
+    </section>
+  </div>
+
+  <script src="webapp.js"></script>
+</body>
+</html>

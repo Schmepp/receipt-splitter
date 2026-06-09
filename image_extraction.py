@@ -2,15 +2,17 @@ import base64
 import json
 import os
 
-from dotenv import load_dotenv
-
 try:
     from openai import OpenAI
 except ModuleNotFoundError:
     OpenAI = None
 
-# loading variables from .env file
-load_dotenv() 
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
 
 def get_client():
     if OpenAI is None:

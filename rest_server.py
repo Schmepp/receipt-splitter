@@ -28,11 +28,18 @@ def index():
     return send_from_directory(ROOT_DIR, "index.html")
 
 
+@app.route("/Bill-Scanner/")
+def index_prefixed():
+    return send_from_directory(ROOT_DIR, "index.html")
+
+
+@app.route("/webapp.js")
 @app.route("/Bill-Scanner/webapp.js")
 def webapp_js():
     return send_from_directory(ROOT_DIR, "webapp.js")
 
 
+@app.route("/parse-receipt", methods=["POST", "OPTIONS"])
 @app.route("/Bill-Scanner/parse-receipt", methods=["POST", "OPTIONS"])
 def parse_receipt():
     if request.method == "OPTIONS":

@@ -28,7 +28,7 @@ def index():
     return send_from_directory(ROOT_DIR, "index.html")
 
 
-@app.route("/webapp.js")
+@app.route("/Bill-Scanner/webapp.js")
 def webapp_js():
     return send_from_directory(ROOT_DIR, "webapp.js")
 

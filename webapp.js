@@ -246,19 +246,19 @@ function renderItems() {
     return;
   }
 
-  const header = `<div class="table-wrap"><table><thead><tr><th>Item</th><th>Price</th><th>Assign to</th><th>Action</th></tr></thead><tbody>`;
+  const header = `<div class="table-wrap"><table class="items-table"><thead><tr><th>Item</th><th>Price</th><th>Assign to</th><th>Action</th></tr></thead><tbody>`;
   const rows = state.items.map(item => {
     const checkboxes = state.people
       .map(person => {
         const checked = item.assignedTo.includes(person.id) ? 'checked' : '';
-        return `<label style="display:inline-flex; align-items:center; gap:6px; margin-right:10px;"><input type="checkbox" data-item="${item.id}" data-person="${person.id}" ${checked} />${escapeHtml(person.name)}</label>`;
+        return `<label class="assign-option"><input type="checkbox" data-item="${item.id}" data-person="${person.id}" ${checked} />${escapeHtml(person.name)}</label>`;
       })
       .join('');
 
     const splitCount = Math.max(1, item.assignedTo.length);
     const perPerson = splitCount > 0 ? roundToTwo(item.price / splitCount) : item.price;
 
-    return `<tr><td>${escapeHtml(item.name)}<div class="small">${splitCount > 1 ? `Split ${splitCount} ways · ${formatMoney(perPerson)} each` : 'Split evenly when shared'}</div></td><td>${formatMoney(item.price)}</td><td>${checkboxes}</td><td><button class="danger-button" type="button" data-delete-item="${item.id}">Delete</button></td></tr>`;
+    return `<tr><td>${escapeHtml(item.name)}<div class="small">${splitCount > 1 ? `Split ${splitCount} ways · ${formatMoney(perPerson)} each` : 'Split evenly when shared'}</div></td><td data-label="Price">${formatMoney(item.price)}</td><td data-label="Assign to"><div class="assign-options">${checkboxes}</div></td><td><button class="danger-button" type="button" data-delete-item="${item.id}">Delete</button></td></tr>`;
   }).join('');
   dom.itemsTableContainer.innerHTML = `${header}${rows}</tbody></table></div>`;
 

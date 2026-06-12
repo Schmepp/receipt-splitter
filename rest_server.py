@@ -68,8 +68,8 @@ def parse_receipt():
         response = image_extraction.extract_receipt_data(image_data, media_type)
         return jsonify(json.loads(response))
     except json.JSONDecodeError:
-        app.logger.exception("Parsing API returned invalid JSON")  # logs the real error        
-        return jsonify({"error": "The receipt parser returned invalid JSON."}), 502
+        app.logger.exception(f"Parsing API returned invalid JSON\n{response}")  # logs the real error        
+        return jsonify({"error": f"The receipt parser returned invalid JSON."}), 502
     except Exception as exc:
         app.logger.exception("Receipt parsing failed")  # logs the real error        
         return jsonify({"error": "Unable to parse receipt."}), 500  # generic response

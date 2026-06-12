@@ -172,13 +172,39 @@
       .button-row { display: flex; gap: 10px; flex-wrap: wrap; }
       .button-row button { width: auto; min-width: 140px; }
       .danger-button {
-        background: #ef4444;
-        color: #fff;
-        border-color: #ef4444;
-        min-width: 92px;
-        padding: 10px 12px;
+        width: auto;
+        min-width: 0;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #dc2626;
+        background: transparent;
+        border: 1px solid #fecaca;
+        border-radius: 999px;
       }
-      .danger-button:hover { background: #dc2626; }
+      .danger-button:hover { background: #fee2e2; color: #b91c1c; }
+      .person-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .person-remove {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        background: transparent;
+        border: 1px solid #fecaca;
+        color: #dc2626;
+        font-size: 1rem;
+        line-height: 1;
+      }
+      .person-remove:hover { background: #fee2e2; color: #b91c1c; }
       .receipt-card {
         padding: 16px;
         border-radius: 18px;
@@ -256,7 +282,6 @@
           letter-spacing: 0.05em;
           color: var(--muted);
         }
-        .items-table .danger-button { width: auto; }
       }
   </style>
 </head>

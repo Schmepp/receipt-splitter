@@ -7,6 +7,8 @@ import json
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 from PIL import Image
 import io
@@ -15,10 +17,16 @@ import image_extraction
 
 
 ROOT_DIR = Path(__file__).resolve().parent
+
 app = Flask(__name__)
 
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"]
+)
 
-app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB max
+
 
 @app.after_request
 def add_cors_headers(response):
@@ -46,6 +54,7 @@ def webapp_js():
 
 @app.route("/parse-receipt", methods=["POST", "OPTIONS"])
 @app.route("/Bill-Scanner/parse-receipt", methods=["POST", "OPTIONS"])
+@limiter.limit("10 per minute")
 def parse_receipt():
     if request.method == "OPTIONS":
         return jsonify({"ok": True})

@@ -8,12 +8,17 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 
+from PIL import Image
+import io
+
 import image_extraction
 
 
 ROOT_DIR = Path(__file__).resolve().parent
 app = Flask(__name__)
 
+
+app.config["MAX_CONTENT_LENGTH"] = 10 * 1024 * 1024  # 10 MB max
 
 @app.after_request
 def add_cors_headers(response):
@@ -48,7 +53,15 @@ def parse_receipt():
     image_file = request.files.get("receipt")
     if image_file is None:
         return jsonify({"error": "No receipt image was uploaded."}), 400
-
+    
+    # Ensure file is actually a valid image for security and usability purposes
+    try:
+        img = Image.open(io.BytesIO(image_file.read()))
+        img.verify()
+        image_file.seek(0)  # reset file pointer for later read
+    except Exception:
+        return jsonify({"error": "File is not a valid image."}), 400
+    
     try:
         image_data = base64.standard_b64encode(image_file.read()).decode("utf-8")
         media_type = image_file.content_type or "image/jpeg"

@@ -3,6 +3,7 @@ const state = {
   date: '',
   items: [],
   people: [],
+  selectedPersonId: null,
   tipPercent: 10,
   splitMethod: 'proportional',
   parsedSubtotal: 0,
@@ -13,6 +14,12 @@ const state = {
 };
 
 const dom = {};
+
+const PERSON_COLORS = ['#ffe4ec', '#e0f2fe', '#fef9c3', '#dcfce7', '#f3e8ff', '#ffe8d6', '#e0e7ff', '#fce7f3', '#cffafe', '#fae8ff'];
+
+function getPersonColor(index) {
+  return PERSON_COLORS[index % PERSON_COLORS.length];
+}
 
 document.addEventListener('DOMContentLoaded', init);
 
@@ -186,6 +193,7 @@ function addPerson(name) {
   state.items.forEach(item => {
     if (!item.assignedTo.length) item.assignedTo = [id];
   });
+  state.selectedPersonId = id;
   renderApp();
 }
 
@@ -236,12 +244,30 @@ function renderPeople() {
   }
 
   dom.peopleList.innerHTML = state.people
-    .map(person => `<div class="summary-card compact person-row"><strong>${escapeHtml(person.name)}</strong><button class="person-remove" type="button" data-delete-person="${person.id}" aria-label="Remove ${escapeHtml(person.name)}" title="Remove ${escapeHtml(person.name)}">&times;</button></div>`)
+    .map((person, index) => {
+      const active = person.id === state.selectedPersonId ? ' active' : '';
+      return `<div class="summary-card compact person-row${active}">
+        <button class="person-select-btn" type="button" data-select-person="${person.id}" style="background-color: ${getPersonColor(index)};">
+          <span class="person-radio"></span>
+          <strong>${escapeHtml(person.name)}</strong>
+        </button>
+        <button class="person-remove" type="button" data-delete-person="${person.id}" aria-label="Remove ${escapeHtml(person.name)}" title="Remove ${escapeHtml(person.name)}">&times;</button>
+      </div>`;
+    })
     .join('');
 
+  dom.peopleList.querySelectorAll('button[data-select-person]').forEach(button => {
+    button.addEventListener('click', handleSelectPerson);
+  });
   dom.peopleList.querySelectorAll('button[data-delete-person]').forEach(button => {
     button.addEventListener('click', handleDeletePerson);
   });
+}
+
+function handleSelectPerson(event) {
+  const personId = event.currentTarget.dataset.selectPerson;
+  state.selectedPersonId = state.selectedPersonId === personId ? null : personId;
+  renderApp();
 }
 
 function handleDeletePerson(event) {
@@ -255,10 +281,10 @@ function handleDeletePerson(event) {
   state.people = state.people.filter(p => p.id !== personId);
   state.items.forEach(item => {
     item.assignedTo = item.assignedTo.filter(id => id !== personId);
-    if (!item.assignedTo.length && state.people[0]) {
-      item.assignedTo = [state.people[0].id];
-    }
   });
+  if (state.selectedPersonId === personId) {
+    state.selectedPersonId = state.people[0]?.id || null;
+  }
   renderApp();
 }
 
@@ -268,19 +294,30 @@ function renderItems() {
     return;
   }
 
-  const header = `<div class="table-wrap"><table class="items-table"><thead><tr><th>Item</th><th>Price</th><th>Assign to</th><th>Action</th></tr></thead><tbody>`;
+  const selectedPerson = state.people.find(p => p.id === state.selectedPersonId);
+  const assignColumnLabel = selectedPerson ? `For ${escapeHtml(selectedPerson.name)}` : 'Assign';
+
+  const notice = !selectedPerson
+    ? `<div class="notice" style="margin-bottom:12px;">${state.people.length ? 'Select a person above to choose their items.' : 'Add a person above, then choose their items here.'}</div>`
+    : '';
+
+  const header = `${notice}<div class="table-wrap"><table class="items-table"><thead><tr><th>Item</th><th>Price</th><th>Shared with</th><th>${assignColumnLabel}</th><th>Action</th></tr></thead><tbody>`;
   const rows = state.items.map(item => {
-    const checkboxes = state.people
-      .map(person => {
-        const checked = item.assignedTo.includes(person.id) ? 'checked' : '';
-        return `<label class="assign-option"><input type="checkbox" data-item="${item.id}" data-person="${person.id}" ${checked} />${escapeHtml(person.name)}</label>`;
-      })
-      .join('');
+    const assignedBadges = item.assignedTo
+      .map(id => state.people.find(person => person.id === id))
+      .filter(Boolean)
+      .map(person => `<span class="badge">${escapeHtml(person.name)}</span>`)
+      .join(' ');
 
     const splitCount = Math.max(1, item.assignedTo.length);
     const perPerson = splitCount > 0 ? roundToTwo(item.price / splitCount) : item.price;
 
-    return `<tr><td>${escapeHtml(item.name)}<div class="small">${splitCount > 1 ? `Split ${splitCount} ways · ${formatMoney(perPerson)} each` : 'Split evenly when shared'}</div></td><td data-label="Price">${formatMoney(item.price)}</td><td data-label="Assign to"><div class="assign-options">${checkboxes}</div></td><td><button class="danger-button" type="button" data-delete-item="${item.id}">Delete</button></td></tr>`;
+    const checked = selectedPerson && item.assignedTo.includes(selectedPerson.id) ? 'checked' : '';
+    const disabled = selectedPerson ? '' : 'disabled';
+    const checkboxLabel = selectedPerson ? escapeHtml(selectedPerson.name) : 'Select a person';
+    const checkbox = `<label class="assign-option"><input type="checkbox" data-item="${item.id}" ${checked} ${disabled} />${checkboxLabel}</label>`;
+
+    return `<tr><td>${escapeHtml(item.name)}<div class="small">${splitCount > 1 ? `Split ${splitCount} ways · ${formatMoney(perPerson)} each` : 'Split evenly when shared'}</div></td><td data-label="Price">${formatMoney(item.price)}</td><td data-label="Shared with">${assignedBadges || '<span class="small muted">Unassigned</span>'}</td><td data-label="${assignColumnLabel}">${checkbox}</td><td><button class="danger-button" type="button" data-delete-item="${item.id}">Delete</button></td></tr>`;
   }).join('');
   dom.itemsTableContainer.innerHTML = `${header}${rows}</tbody></table></div>`;
 
@@ -306,9 +343,9 @@ function handleDeleteItem(event) {
 
 function handleAssignmentChange(event) {
   const itemId = event.target.dataset.item;
-  const personId = event.target.dataset.person;
+  const personId = state.selectedPersonId;
   const item = state.items.find(i => i.id === itemId);
-  if (!item) return;
+  if (!item || !personId) return;
 
   if (event.target.checked) {
     if (!item.assignedTo.includes(personId)) {
@@ -316,9 +353,6 @@ function handleAssignmentChange(event) {
     }
   } else {
     item.assignedTo = item.assignedTo.filter(id => id !== personId);
-    if (item.assignedTo.length === 0) {
-      item.assignedTo = [state.people[0]?.id || personId];
-    }
   }
 
   renderApp();
@@ -430,6 +464,7 @@ function resetApp() {
   state.date = '';
   state.items = [];
   state.people = [];
+  state.selectedPersonId = null;
   state.tipPercent = 10;
   state.splitMethod = 'proportional';
   state.parsedSubtotal = 0;

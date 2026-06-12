@@ -205,6 +205,43 @@
         line-height: 1;
       }
       .person-remove:hover { background: #fee2e2; color: #b91c1c; }
+      .person-row { border: 1px solid transparent; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+      .person-select-btn {
+        color: var(--text);
+        border: none;
+        width: auto;
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        font: inherit;
+        font-weight: 700;
+        text-align: left;
+        cursor: pointer;
+        border-radius: 14px;
+        transition: filter 0.15s ease, box-shadow 0.15s ease;
+      }
+      .person-select-btn:hover { filter: brightness(0.96); }
+      .person-row.active .person-select-btn { box-shadow: 0 0 0 2px var(--primary) inset; }
+      .person-radio {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.5);
+        flex: 0 0 auto;
+        display: inline-block;
+        position: relative;
+      }
+      .person-row.active .person-radio { border-color: var(--primary); }
+      .person-row.active .person-radio::after {
+        content: '';
+        position: absolute;
+        inset: 3px;
+        border-radius: 50%;
+        background: var(--primary);
+      }
       .receipt-card {
         padding: 16px;
         border-radius: 18px;
@@ -333,6 +370,7 @@
         </div>
         <div>
           <h2>People</h2>
+          <div class="subtle" style="margin-bottom: 10px;">Click a person to select them, then check off their items below.</div>
           <div id="peopleList" class="person-grid"></div>
           <form id="addPersonForm" style="margin-top: 14px;">
             <label for="newPersonName">Add your name</label>
@@ -347,7 +385,7 @@
       <div class="section-toolbar">
         <div>
           <h2>Items & assignments</h2>
-          <div class="subtle">Check who shares each item, or add missing items manually.</div>
+          <div class="subtle">Select a person above, then check the items they're having. Add missing items manually below.</div>
         </div>
       </div>
       <form id="addItemForm" class="grid grid-2" style="margin-top: 6px;">

@@ -236,8 +236,30 @@ function renderPeople() {
   }
 
   dom.peopleList.innerHTML = state.people
-    .map(person => `<div class="summary-card compact"><strong>${escapeHtml(person.name)}</strong></div>`)
+    .map(person => `<div class="summary-card compact person-row"><strong>${escapeHtml(person.name)}</strong><button class="person-remove" type="button" data-delete-person="${person.id}" aria-label="Remove ${escapeHtml(person.name)}" title="Remove ${escapeHtml(person.name)}">&times;</button></div>`)
     .join('');
+
+  dom.peopleList.querySelectorAll('button[data-delete-person]').forEach(button => {
+    button.addEventListener('click', handleDeletePerson);
+  });
+}
+
+function handleDeletePerson(event) {
+  const personId = event.currentTarget.dataset.deletePerson;
+  const person = state.people.find(p => p.id === personId);
+  if (!person) return;
+
+  const confirmed = window.confirm(`Remove ${person.name}?`);
+  if (!confirmed) return;
+
+  state.people = state.people.filter(p => p.id !== personId);
+  state.items.forEach(item => {
+    item.assignedTo = item.assignedTo.filter(id => id !== personId);
+    if (!item.assignedTo.length && state.people[0]) {
+      item.assignedTo = [state.people[0].id];
+    }
+  });
+  renderApp();
 }
 
 function renderItems() {

@@ -64,6 +64,29 @@
         background: #fff;
       }
       input[type=file] { padding: 8px 10px; }
+      input[type=checkbox] {
+        width: 18px;
+        height: 18px;
+        padding: 0;
+        margin: 0;
+        flex: 0 0 auto;
+        accent-color: var(--primary);
+      }
+      .assign-options { display: flex; flex-wrap: wrap; gap: 8px; }
+      .assign-option {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        padding: 6px 10px;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        background: #f8fafc;
+        white-space: nowrap;
+        cursor: pointer;
+      }
       button {
         cursor: pointer;
         background: var(--primary);
@@ -214,6 +237,26 @@
       @media (max-width: 700px) {
         .grid-2 { grid-template-columns: 1fr; }
         .inline-grid { grid-template-columns: 1fr; }
+        .items-table { min-width: 0; }
+        .items-table thead { display: none; }
+        .items-table tr {
+          display: grid;
+          gap: 8px;
+          padding: 14px 0;
+          border-bottom: 1px solid #e2e8f0;
+        }
+        .items-table td { display: block; padding: 0; border-bottom: 0; }
+        .items-table td[data-label]::before {
+          content: attr(data-label);
+          display: block;
+          margin-bottom: 4px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          color: var(--muted);
+        }
+        .items-table .danger-button { width: auto; }
       }
   </style>
 </head>

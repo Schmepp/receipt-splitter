@@ -1,0 +1,40 @@
+name: Update README Screenshots
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  screenshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt playwright
+          playwright install chromium --with-deps
+
+      - name: Start Flask server
+        run: python rest_server.py &
+
+      - name: Wait for server to be ready
+        run: until curl -s http://localhost:5000/ > /dev/null; do sleep 1; done
+
+      - name: Take screenshots
+        run: python screenshot.py
+
+      - name: Commit screenshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/screenshots/
+          git diff --staged --quiet || git commit -m "docs: update screenshots [skip ci]"
+          git push

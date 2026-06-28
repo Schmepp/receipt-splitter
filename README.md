@@ -106,7 +106,7 @@ Uploads are validated as real images before parsing, and the endpoint is rate-li
 - Items checked by multiple people are split evenly between them.
 - Tax is read from the receipt and split using the same method as the tip.
 
-## Roadmap
+## Roadmap for the future
 
 - Optional alternative OCR backend
 - Better receipt parsing accuracy (especially taxes)
